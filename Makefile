@@ -13,6 +13,9 @@ foo: $(OBJS)
 %.o: %.cpp
 	$(BSUB) $(CC) $(CFLAGS) -c -o $@ $<
 
+test: foo
+	$(BSUB) ./$^
+
 test_blas: test_blas.cpp
 	$(BSUB) $(CC) $(CFLAGS) -o $@ $^ $(BLASLIB)
 
