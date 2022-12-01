@@ -16,6 +16,8 @@ void print_matrix(float* mat, int row, int column)
     }
 }
 // =============== fully-connected layer ========================//
+fully_connected::fully_connected(){} // default constructor
+
 fully_connected::fully_connected(int in_dim, int out_dim)
 {
     weight = (float*)malloc(sizeof(float) * in_dim * out_dim);
@@ -34,30 +36,30 @@ fully_connected::fully_connected(int in_dim, int out_dim)
     _out_dim = out_dim;
 }
 
-fully_connected::fully_connected(int in_dim, int out_dim, float* weight_pretrained, float* bias_pretrained)
+fully_connected::fully_connected(const fully_connected& fc)
 {
-    weight = (float*)malloc(sizeof(float) * in_dim * out_dim);
+    weight = (float*)malloc(sizeof(float) * fc._in_dim * fc._out_dim);
     if (weight == NULL)
     {
         printf("Malloc failed!\n");
         exit(1);
     }
-    bias = (float*)malloc(sizeof(float) * out_dim);
+    bias = (float*)malloc(sizeof(float) * fc._out_dim);
     if (bias == NULL)
     {
         printf("Malloc failed!\n");
         exit(1);
     }
-    _in_dim = in_dim;
-    _out_dim = out_dim;
+    _in_dim = fc._in_dim;
+    _out_dim = fc._out_dim;
 
     for (int i = 0; i < _in_dim * _out_dim; ++i)
     {
-        weight[i] = weight_pretrained[i]; //copy weight
+        weight[i] = fc.weight[i]; //copy weight
     }
     for (int i = 0; i < _out_dim; ++i)
     {
-        bias[i] = bias_pretrained[i]; //copy bias
+        bias[i] = fc.bias[i]; //copy bias
     }
 }
 
@@ -101,6 +103,8 @@ float* fully_connected::forward(float* input, float* output)
 }
 
 // ================= max-pooling layer ==================== //
+max_pooling::max_pooling(){}
+
 max_pooling::max_pooling(int kernel_size, int stride)
 {
     _kernel_size = kernel_size;
@@ -155,8 +159,20 @@ float* ReLU(float* input, int in_size, float* output)
 }
 
 // ================== convolution layer ====================== //
+convolution::convolution()
+{
+    _in_dim = 0;
+    _out_dim = 0;
+    _kernel_size = 0;
+    _stride = 0;
+    _padding = 0;
+    weight = NULL;
+    bias = NULL;
+    valid = false;
+}
+
 convolution::convolution(int in_dim, int out_dim, int kernel_size, int stride, int padding):
-_in_dim(in_dim),_out_dim(out_dim),_kernel_size(kernel_size), _stride(stride), _padding(padding)
+_in_dim(in_dim),_out_dim(out_dim),_kernel_size(kernel_size), _stride(stride), _padding(padding), valid(false)
 {
     weight = (float**)malloc(sizeof(float*)*out_dim);
     if (weight == NULL)
@@ -183,14 +199,64 @@ _in_dim(in_dim),_out_dim(out_dim),_kernel_size(kernel_size), _stride(stride), _p
     }
 }
 
-convolution::~convolution()
+convolution::convolution(const convolution& conv) //NOTE: DO NOT copy default object!
 {
+    _in_dim = conv._in_dim;
+    _out_dim = conv._out_dim;
+    _kernel_size = conv._kernel_size;
+    _stride = conv._stride;
+    _padding = conv._padding;
+    valid = conv.valid;
+
+    weight = (float**)malloc(sizeof(float*)*_out_dim);
+    if (weight == NULL)
+    {
+        printf("Malloc failed!\n");
+        exit(1);
+    }
+
     for (int i = 0; i < _out_dim; ++i)
     {
-        free(weight[i]);
+        weight[i] = (float*)malloc(sizeof(float)*_kernel_size*_kernel_size*_in_dim);
+        if (weight[i] == NULL)
+        {
+            printf("Malloc failed!\n");
+            exit(1);
+        }
     }
-    free(weight);
-    free(bias);
+
+    bias = (float*)malloc(sizeof(float)*_out_dim);
+    if (bias == NULL)
+    {
+        printf("Malloc failed!\n");
+        exit(1);
+    }
+
+    // if weight is valid, copy weight value
+    if(valid)
+    {
+        for (int i = 0; i < _out_dim; ++i)
+        {
+            for (int j = 0; j < _kernel_size*_kernel_size*_in_dim; ++j)
+            {
+                weight[i][j] = conv.weight[i][j];
+            }
+            bias[i] = conv.bias[i];
+        }
+    }
+}
+
+convolution::~convolution()
+{
+    if(weight!=NULL)
+    {    for (int i = 0; i < _out_dim; ++i)
+        {
+            free(weight[i]);
+        }
+        free(weight);
+    }
+    if(bias!=NULL)
+        free(bias);
 }
 
 int convolution::set_weight(float** weight_pretrained, float* bias_pretrained)
@@ -203,11 +269,19 @@ int convolution::set_weight(float** weight_pretrained, float* bias_pretrained)
         }
         bias[i] = bias_pretrained[i];
     }
+    valid = true; // set the valid signal
     return 1;
 }
 
 float** convolution::forward(float** input, int in_size, float** output)
 {
+    //------- uninitialize detection --------//
+    if (valid == false)
+    {
+        printf("Error! Uninitialized layer cannot use forward().\n");
+        return NULL;
+    }
+
     int in_size_padding = in_size + 2*_padding;
     int out_size = (in_size + 2*_padding - _kernel_size)/_stride + 1;
 
@@ -285,3 +359,23 @@ float** convolution::forward(float** input, int in_size, float** output)
     }
     return output;
 }
+//TODO: check conv again due to some change
+// =============== residual block ================= //
+residual::residual(int in_dim, int out_dim, int stride):
+_in_dim(in_dim), _out_dim(out_dim), 
+conv1(in_dim, out_dim, 3, stride,1), conv2(out_dim, out_dim, 3,1,1)
+{
+    _type = stride!=1 || out_dim!=in_dim; // _type=0: direct identity connect; _type=1:need transformation
+    if (_type)
+    {
+        conv_identity = convolution(in_dim, out_dim, 1, stride);
+    }
+}
+
+residual::~residual(){}
+
+int residual::set_weight(float** weight1, float* bias1, float** weight2, float* bias2, float** weight_i, float* bias_i)
+{}
+
+float** residual::forward(float** input, int in_size, float** output)
+{}

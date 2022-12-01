@@ -44,7 +44,7 @@ int main(int argc, char const *argv[])
 {
     int in_size = 4, out_size = 2;
     int in_dim = 2, out_dim = 2, kernel_size = 3, stride = 2, padding = 1;
-    convolution conv(in_dim, out_dim, kernel_size, stride, padding);
+    convolution conv=convolution(in_dim, out_dim, kernel_size, stride, padding);
 
     float **input = new float*[in_dim];
     for (int i = 0; i < in_dim; ++i)
