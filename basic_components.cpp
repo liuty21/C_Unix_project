@@ -16,7 +16,14 @@ void print_matrix(float* mat, int row, int column)
     }
 }
 // =============== fully-connected layer ========================//
-fully_connected::fully_connected(){} // default constructor
+fully_connected::fully_connected()
+{
+    _in_dim = 0;
+    _out_dim = 0;
+    weight = NULL;
+    bias = NULL;
+    valid = false;
+} // default constructor
 
 fully_connected::fully_connected(int in_dim, int out_dim)
 {
@@ -34,6 +41,7 @@ fully_connected::fully_connected(int in_dim, int out_dim)
     }
     _in_dim = in_dim;
     _out_dim = out_dim;
+    valid = false;
 }
 
 fully_connected::fully_connected(const fully_connected& fc)
@@ -52,21 +60,26 @@ fully_connected::fully_connected(const fully_connected& fc)
     }
     _in_dim = fc._in_dim;
     _out_dim = fc._out_dim;
-
-    for (int i = 0; i < _in_dim * _out_dim; ++i)
+    valid = fc.valid;
+    if(valid)
     {
-        weight[i] = fc.weight[i]; //copy weight
-    }
-    for (int i = 0; i < _out_dim; ++i)
-    {
-        bias[i] = fc.bias[i]; //copy bias
+        for (int i = 0; i < _in_dim * _out_dim; ++i)
+        {
+            weight[i] = fc.weight[i]; //copy weight
+        }
+        for (int i = 0; i < _out_dim; ++i)
+        {
+            bias[i] = fc.bias[i]; //copy bias
+        }
     }
 }
 
 fully_connected::~fully_connected()
 {
-    free(weight); // free weight memory
-    free(bias); // free bias memory
+    if(weight!=NULL)
+        free(weight); // free weight memory
+    if(bias!=NULL)
+        free(bias); // free bias memory
 }
 
 int fully_connected::set_weight(float* weight_pretrained, float* bias_pretrained)
@@ -84,6 +97,13 @@ int fully_connected::set_weight(float* weight_pretrained, float* bias_pretrained
 
 float* fully_connected::forward(float* input, float* output)
 {
+    //------- uninitialize detection --------//
+    if (valid == false)
+    {
+        printf("Error! Uninitialized layer cannot use forward().\n");
+        return NULL;
+    }
+
     const enum CBLAS_ORDER order = CblasRowMajor;
     const enum CBLAS_TRANSPOSE trans = CblasNoTrans;
     const float alpha = 1;
@@ -154,6 +174,22 @@ float* ReLU(float* input, int in_size, float* output)
     for (int i = 0; i < in_size; ++i)
     {
         output[i] = (input[i]>0) ? input[i] : 0.0;
+    }
+    return output;
+}
+
+float** ReLU(float** input, int in_dim, int in_size, float** output)
+{
+    if (output == NULL)
+    {
+        output = input; // calculate inplace
+    }
+    for (int i = 0; i < in_dim; ++i)
+    {
+        for (int j = 0; j < in_size * in_size; ++j)
+        {
+            output[i][j] = (input[i][j]>0) ? input[i][j] : 0.0;
+        }
     }
     return output;
 }
@@ -249,7 +285,8 @@ convolution::convolution(const convolution& conv) //NOTE: DO NOT copy default ob
 convolution::~convolution()
 {
     if(weight!=NULL)
-    {    for (int i = 0; i < _out_dim; ++i)
+    {    
+        for (int i = 0; i < _out_dim; ++i)
         {
             free(weight[i]);
         }
@@ -316,7 +353,10 @@ float** convolution::forward(float** input, int in_size, float** output)
                         input_padding[i][j*in_size_padding + k] = 0; // zero padding
                     }
                     else
+                    {
+                        // printf("%d %d %d %d\n",i,j,k, in_size_padding);
                         input_padding[i][j*in_size_padding + k] = input[i][(j-_padding)*in_size + k - _padding]; // copy initial input value
+                    }
                 }
             }
         }
@@ -359,23 +399,92 @@ float** convolution::forward(float** input, int in_size, float** output)
     }
     return output;
 }
-//TODO: check conv again due to some change
+
 // =============== residual block ================= //
 residual::residual(int in_dim, int out_dim, int stride):
-_in_dim(in_dim), _out_dim(out_dim), 
-conv1(in_dim, out_dim, 3, stride,1), conv2(out_dim, out_dim, 3,1,1)
+_in_dim(in_dim), _out_dim(out_dim), _stride(stride),
+conv1(in_dim, out_dim, 3, stride,1), conv2(out_dim, out_dim, 3,1,1),
+conv_identity(in_dim, out_dim, 1, stride)
 {
-    _type = stride!=1 || out_dim!=in_dim; // _type=0: direct identity connect; _type=1:need transformation
-    if (_type)
-    {
-        conv_identity = convolution(in_dim, out_dim, 1, stride);
-    }
+    _type = stride!=1 || out_dim!=in_dim; 
+    valid = false;
 }
 
 residual::~residual(){}
 
 int residual::set_weight(float** weight1, float* bias1, float** weight2, float* bias2, float** weight_i, float* bias_i)
-{}
+{
+    conv1.set_weight(weight1, bias1);
+    conv2.set_weight(weight2, bias2);
+    if (_type) // need transform
+    {
+        conv_identity.set_weight(weight_i, bias_i);
+    }
+    valid = true; // set valid signal
+    return 1;
+}
 
 float** residual::forward(float** input, int in_size, float** output)
-{}
+{
+    //------- uninitialize detection --------//
+    if (valid == false)
+    {
+        printf("Error! Uninitialized block cannot use forward().\n");
+        return NULL;
+    }
+
+    float** conv1_output;
+    float** conv_i_output;
+    // -------- malloc for intermediate output --------//
+    conv1_output = (float**)malloc(sizeof(float*)*_out_dim);
+    if (conv1_output == NULL)
+    {
+        printf("Malloc failed!\n");
+        exit(1);
+    }
+
+    int out_size = (in_size - 1)/_stride + 1; // =in_size or in_size/2
+    for (int i = 0; i < _out_dim; ++i)
+    {
+        conv1_output[i] = (float*)malloc(sizeof(float)*out_size*out_size);
+        if (conv1_output[i] == NULL)
+        {
+            printf("Malloc failed!\n");
+            exit(1);
+        }
+    }
+
+    // ---------- forward dataflow ----------//
+    conv1.forward(input, in_size, conv1_output);
+    ReLU(conv1_output, _out_dim, out_size);
+    conv2.forward(conv1_output, out_size, output);
+
+    if (_type)
+    {
+        // reuse the memory of intermediate output
+        conv_i_output = conv_identity.forward(input, in_size, conv1_output);
+    }
+    else
+        conv_i_output = input; // direct identity connect to input
+    
+    for (int i = 0; i < _out_dim; ++i)
+    {
+        for (int j = 0; j < out_size*out_size; ++j)
+        {
+            // output = conv(x) + identity(x)
+            output[i][j] = output[i][j] + conv_i_output[i][j];
+        }
+    }
+
+    // output = ReLU(output)
+    ReLU(output, _out_dim ,out_size);
+
+    // -------- free intermediate output memory -------- //
+    for (int i = 0; i < _out_dim; ++i)
+    {
+        free(conv1_output[i]);
+    }
+    free(conv1_output);
+
+    return output;
+}

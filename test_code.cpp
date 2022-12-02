@@ -40,46 +40,133 @@
 
 
 // test convolution layer
+// int main(int argc, char const *argv[])
+// {
+//     int in_size = 4, out_size = 2;
+//     int in_dim = 2, out_dim = 4, kernel_size = 3, stride = 2, padding = 1;
+//     convolution conv=convolution(in_dim, out_dim, kernel_size, stride, padding);
+
+//     float **input = new float*[in_dim];
+//     for (int i = 0; i < in_dim; ++i)
+//     {
+//         input[i]= new float[in_size*in_size];
+//         for (int j = 0; j < in_size*in_size; ++j)
+//         {
+//             input[i][j] = j+1;
+//         }
+//     }
+//     float** output = new float*[out_dim];
+//     for (int i = 0; i < out_dim; ++i)
+//     {
+//         output[i] = new float[out_size*out_size];
+//     }
+
+//     float** weight = new float*[out_dim];
+//     for (int i = 0; i < out_dim; ++i)
+//     {
+//         weight[i] = new float[kernel_size*kernel_size*in_dim];
+//         for (int j = 0; j < kernel_size*kernel_size*in_dim; ++j)
+//         {
+//             weight[i][j] = 0.1*(i+1);
+//         }
+//         // printf("weight%d:\n", i+1);
+//         // print_matrix(weight[i], kernel_size, kernel_size);
+//     }
+//     float* bias = new float[out_dim];
+//     for (int i = 0; i < out_dim; ++i)
+//     {
+//         bias[i] = 1;
+//     }
+
+//     conv.set_weight(weight, bias);
+//     conv.forward(input, in_size, output);
+
+//     for (int i = 0; i < out_dim; ++i)
+//     {
+//         print_matrix(output[i], out_size, out_size);
+//         printf("\n");
+//     }
+
+//     for (int i = 0; i < out_dim; ++i)
+//     {
+//         delete []weight[i];
+//         delete []output[i];
+//     }
+//     delete []weight;
+//     delete []output;
+//     delete []input;
+//     delete []bias;
+//     return 0;
+// }
+
+// test residual block
 int main(int argc, char const *argv[])
 {
-    int in_size = 4, out_size = 2;
-    int in_dim = 2, out_dim = 2, kernel_size = 3, stride = 2, padding = 1;
-    convolution conv=convolution(in_dim, out_dim, kernel_size, stride, padding);
+    int in_size = 4;
+    int in_dim = 2, out_dim = 4, kernel_size = 3, stride = 2;
+    int out_size = in_size/stride;
 
-    float **input = new float*[in_dim];
+    residual res(in_dim, out_dim, stride);
+
+    float **input = (float**)malloc(sizeof(float*)*in_dim);
     for (int i = 0; i < in_dim; ++i)
     {
-        input[i]= new float[in_size*in_size];
+        input[i]= (float*)malloc(sizeof(float)*in_size*in_size);
         for (int j = 0; j < in_size*in_size; ++j)
         {
             input[i][j] = j+1;
         }
     }
+    printf("%f\n", input[0][1]);
     float** output = new float*[out_dim];
     for (int i = 0; i < out_dim; ++i)
     {
         output[i] = new float[out_size*out_size];
     }
 
-    float** weight = new float*[out_dim];
+    float** weight1 = new float*[out_dim];
     for (int i = 0; i < out_dim; ++i)
     {
-        weight[i] = new float[kernel_size*kernel_size*in_dim];
+        weight1[i] = new float[kernel_size*kernel_size*in_dim];
         for (int j = 0; j < kernel_size*kernel_size*in_dim; ++j)
         {
-            weight[i][j] = 0.1*(i+1);
+            weight1[i][j] = 0.1;
         }
         // printf("weight%d:\n", i+1);
         // print_matrix(weight[i], kernel_size, kernel_size);
     }
+    float** weight2 = new float*[out_dim];
+    for (int i = 0; i < out_dim; ++i)
+    {
+        weight2[i] = new float[kernel_size*kernel_size*out_dim];
+        for (int j = 0; j < kernel_size*kernel_size*out_dim; ++j)
+        {
+            weight2[i][j] = 0.1;
+        }
+        // printf("weight%d:\n", i+1);
+        // print_matrix(weight[i], kernel_size, kernel_size);
+    }
+
     float* bias = new float[out_dim];
     for (int i = 0; i < out_dim; ++i)
     {
-        bias[i] = 1;
+        bias[i] = 0;
     }
 
-    conv.set_weight(weight, bias);
-    conv.forward(input, in_size, output);
+    float** weight_i = new float*[out_dim];
+    for (int i = 0; i < out_dim; ++i)
+    {
+        weight_i[i] = new float[1*1*in_dim];
+        for (int j = 0; j < in_dim; ++j)
+        {
+            weight_i[i][j] = 1;
+        }
+    }
+
+printf("%f\n", input[0][1]);
+    res.set_weight(weight1, bias, weight2, bias, weight_i, bias);
+    printf("%f\n", input[0][1]);
+    res.forward(input, in_size, output);
 
     for (int i = 0; i < out_dim; ++i)
     {
@@ -87,14 +174,20 @@ int main(int argc, char const *argv[])
         printf("\n");
     }
 
+    for (int i = 0; i < in_dim; ++i)
+    {
+        free(input[i]);
+    }
+    free(input);
     for (int i = 0; i < out_dim; ++i)
     {
-        delete []weight[i];
+        delete []weight1[i];
+        delete []weight2[i];
         delete []output[i];
     }
-    delete []weight;
+    delete []weight1;
+    delete []weight2;
     delete []output;
-    delete []input;
     delete []bias;
     return 0;
 }

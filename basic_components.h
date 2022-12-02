@@ -17,6 +17,7 @@ public:
     int _out_dim;
     float* weight; // weight(size = out_dim x in_dim)
     float* bias; // bias(size = out_dim x 1)
+    bool valid;
 };
 
 class max_pooling
@@ -31,7 +32,10 @@ private:
     int _stride;
 };
 
-float* ReLU(float* input, int in_size, float* output=NULL);
+// ReLU for 1d input and output
+float* ReLU(float* input, int in_size, float* output=NULL); 
+// ReLU for 2d input and output
+float** ReLU(float** input, int in_dim, int in_size, float** output=NULL); 
 
 class convolution
 {
@@ -63,9 +67,11 @@ public:
     float** forward(float** input, int in_size, float** output);
 private:
     convolution conv1,conv2;
-    int _type;
+    bool _type; // _type=0: direct identity connect; _type=1:need transformation
     int _in_dim;
     int _out_dim;
+    int _stride;
+    bool valid;
     convolution conv_identity;
 };
 #endif
