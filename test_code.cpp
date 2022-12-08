@@ -17,26 +17,58 @@
 // }
 
 // test maxpooling layer & ReLU
-// int main(int argc, char const *argv[])
-// {
-//     int kernel_size = 3, stride = 2;
-//     int in_size = 8;
-//     float input[64], output[16];
-//     float* activate;
-//     for (int i = 0; i < 64; ++i)
-//     {
-//         input[i] = -i+1;
-//     }
-//     max_pooling pool(kernel_size, stride);
-//     pool.forward(input, in_size, output);
+int main(int argc, char const *argv[])
+{
+    int kernel_size = 3, stride = 2;
+    int in_size = 8, in_dim = 2;
+    int out_size = output_size_cal(in_size, kernel_size, stride);
+    float** input;
+    float** output;
+    float input1[64], input2[64];
+    input = new float*[in_dim];
+    output = new float*[in_dim];
+    for (int i = 0; i < in_dim; ++i)
+    {
+        output[i] = new float[out_size*out_size];
+    }
+    input[0]=input1; input[1] = input2;
 
-//     print_matrix(output, 3, 3);
+    float** activate;
+    for (int i = 0; i < 64; ++i)
+    {
+        input1[i] = i+1;
+        input2[i] = -i+1;
+    }
+    for(int i=0; i < in_dim; ++i)
+    {
+        print_matrix(input[i], in_size, in_size);
+        printf("\n");
+    }
+    max_pooling pool(kernel_size, stride);
+    pool.forward(input, in_dim, in_size, output);
 
-//     activate = ReLU(output, 9);
-//     print_matrix(activate, 3, 3);
+    for(int i=0; i < in_dim; ++i)
+    {
+        print_matrix(output[i], out_size, out_size);
+        printf("\n");
+    }
 
-//     return 0;
-// }
+    activate = ReLU(output, in_dim, out_size);
+    for(int i=0; i < in_dim; ++i)
+    {
+        print_matrix(activate[i], out_size, out_size);
+        printf("\n");
+    }
+
+    for (int i = 0; i < in_dim; ++i)
+    {
+        delete []output[i];
+    }
+    delete []output;
+    delete []input;
+
+    return 0;
+}
 
 
 // test convolution layer
@@ -99,95 +131,95 @@
 //     return 0;
 // }
 
-// test residual block
-int main(int argc, char const *argv[])
-{
-    int in_size = 4;
-    int in_dim = 2, out_dim = 4, kernel_size = 3, stride = 2;
-    int out_size = in_size/stride;
+// // test residual block
+// int main(int argc, char const *argv[])
+// {
+//     int in_size = 4;
+//     int in_dim = 2, out_dim = 4, kernel_size = 3, stride = 2;
+//     int out_size = in_size/stride;
 
-    residual res(in_dim, out_dim, stride);
+//     residual res(in_dim, out_dim, stride);
 
-    float **input = (float**)malloc(sizeof(float*)*in_dim);
-    for (int i = 0; i < in_dim; ++i)
-    {
-        input[i]= (float*)malloc(sizeof(float)*in_size*in_size);
-        for (int j = 0; j < in_size*in_size; ++j)
-        {
-            input[i][j] = j+1;
-        }
-    }
-    printf("%f\n", input[0][1]);
-    float** output = new float*[out_dim];
-    for (int i = 0; i < out_dim; ++i)
-    {
-        output[i] = new float[out_size*out_size];
-    }
+//     float **input = (float**)malloc(sizeof(float*)*in_dim);
+//     for (int i = 0; i < in_dim; ++i)
+//     {
+//         input[i]= (float*)malloc(sizeof(float)*in_size*in_size);
+//         for (int j = 0; j < in_size*in_size; ++j)
+//         {
+//             input[i][j] = j+1;
+//         }
+//     }
+//     printf("%f\n", input[0][1]);
+//     float** output = new float*[out_dim];
+//     for (int i = 0; i < out_dim; ++i)
+//     {
+//         output[i] = new float[out_size*out_size];
+//     }
 
-    float** weight1 = new float*[out_dim];
-    for (int i = 0; i < out_dim; ++i)
-    {
-        weight1[i] = new float[kernel_size*kernel_size*in_dim];
-        for (int j = 0; j < kernel_size*kernel_size*in_dim; ++j)
-        {
-            weight1[i][j] = 0.1;
-        }
-        // printf("weight%d:\n", i+1);
-        // print_matrix(weight[i], kernel_size, kernel_size);
-    }
-    float** weight2 = new float*[out_dim];
-    for (int i = 0; i < out_dim; ++i)
-    {
-        weight2[i] = new float[kernel_size*kernel_size*out_dim];
-        for (int j = 0; j < kernel_size*kernel_size*out_dim; ++j)
-        {
-            weight2[i][j] = 0.1;
-        }
-        // printf("weight%d:\n", i+1);
-        // print_matrix(weight[i], kernel_size, kernel_size);
-    }
+//     float** weight1 = new float*[out_dim];
+//     for (int i = 0; i < out_dim; ++i)
+//     {
+//         weight1[i] = new float[kernel_size*kernel_size*in_dim];
+//         for (int j = 0; j < kernel_size*kernel_size*in_dim; ++j)
+//         {
+//             weight1[i][j] = 0.1;
+//         }
+//         // printf("weight%d:\n", i+1);
+//         // print_matrix(weight[i], kernel_size, kernel_size);
+//     }
+//     float** weight2 = new float*[out_dim];
+//     for (int i = 0; i < out_dim; ++i)
+//     {
+//         weight2[i] = new float[kernel_size*kernel_size*out_dim];
+//         for (int j = 0; j < kernel_size*kernel_size*out_dim; ++j)
+//         {
+//             weight2[i][j] = 0.1;
+//         }
+//         // printf("weight%d:\n", i+1);
+//         // print_matrix(weight[i], kernel_size, kernel_size);
+//     }
 
-    float* bias = new float[out_dim];
-    for (int i = 0; i < out_dim; ++i)
-    {
-        bias[i] = 0;
-    }
+//     float* bias = new float[out_dim];
+//     for (int i = 0; i < out_dim; ++i)
+//     {
+//         bias[i] = 0;
+//     }
 
-    float** weight_i = new float*[out_dim];
-    for (int i = 0; i < out_dim; ++i)
-    {
-        weight_i[i] = new float[1*1*in_dim];
-        for (int j = 0; j < in_dim; ++j)
-        {
-            weight_i[i][j] = 1;
-        }
-    }
+//     float** weight_i = new float*[out_dim];
+//     for (int i = 0; i < out_dim; ++i)
+//     {
+//         weight_i[i] = new float[1*1*in_dim];
+//         for (int j = 0; j < in_dim; ++j)
+//         {
+//             weight_i[i][j] = 1;
+//         }
+//     }
 
-printf("%f\n", input[0][1]);
-    res.set_weight(weight1, bias, weight2, bias, weight_i, bias);
-    printf("%f\n", input[0][1]);
-    res.forward(input, in_size, output);
+// printf("%f\n", input[0][1]);
+//     res.set_weight(weight1, bias, weight2, bias, weight_i, bias);
+//     printf("%f\n", input[0][1]);
+//     res.forward(input, in_size, output);
 
-    for (int i = 0; i < out_dim; ++i)
-    {
-        print_matrix(output[i], out_size, out_size);
-        printf("\n");
-    }
+//     for (int i = 0; i < out_dim; ++i)
+//     {
+//         print_matrix(output[i], out_size, out_size);
+//         printf("\n");
+//     }
 
-    for (int i = 0; i < in_dim; ++i)
-    {
-        free(input[i]);
-    }
-    free(input);
-    for (int i = 0; i < out_dim; ++i)
-    {
-        delete []weight1[i];
-        delete []weight2[i];
-        delete []output[i];
-    }
-    delete []weight1;
-    delete []weight2;
-    delete []output;
-    delete []bias;
-    return 0;
-}
+//     for (int i = 0; i < in_dim; ++i)
+//     {
+//         free(input[i]);
+//     }
+//     free(input);
+//     for (int i = 0; i < out_dim; ++i)
+//     {
+//         delete []weight1[i];
+//         delete []weight2[i];
+//         delete []output[i];
+//     }
+//     delete []weight1;
+//     delete []weight2;
+//     delete []output;
+//     delete []bias;
+//     return 0;
+// }

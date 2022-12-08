@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-// =============== print matrix function ========================//
+// =============== basic functions ========================//
 void print_matrix(float* mat, int row, int column)
 {
     for (int i = 0; i < row; ++i)
@@ -14,6 +14,13 @@ void print_matrix(float* mat, int row, int column)
         }
         printf("\n");
     }
+}
+
+int output_size_cal(int in_size, int kernel_size, int stride, int padding)
+{
+    int out_size;
+    out_size = (in_size + 2*padding - kernel_size)/stride + 1;
+    return out_size;
 }
 // =============== fully-connected layer ========================//
 fully_connected::fully_connected()
@@ -133,32 +140,35 @@ max_pooling::max_pooling(int kernel_size, int stride)
 
 max_pooling::~max_pooling(){}
 
-float* max_pooling::forward(float* input, int in_size, float* output)
+float** max_pooling::forward(float** input, int in_dim, int in_size, float** output)
 {
     int out_size = (in_size - _kernel_size)/_stride + 1;
-    for (int i = 0; i < out_size; ++i)
+    for(int d = 0; d < in_dim; ++d)
     {
-        for (int j = 0; j < out_size; ++j)
+        for (int i = 0; i < out_size; ++i)
         {
-            // calculation rule: 
-            // out(i,j) = max[in(i*st,     j*st)  , ..., in(i*st,       j*st+knl-1)]
-            //               [      ...                       ...                  ]
-            //               [in(i*st+knl-1, j*st), ..., in(i*st+knl-1, j*st+knl-1)]
-
-            // set the first element as output
-            output[i*out_size+j] = input[i*_stride*in_size + j*_stride];
-            for (int k = 0; k < _kernel_size; ++k)
+            for (int j = 0; j < out_size; ++j)
             {
-                for (int m = 0; m < _kernel_size; ++m)
+                // calculation rule: 
+                // out(i,j) = max[in(i*st,     j*st)  , ..., in(i*st,       j*st+knl-1)]
+                //               [      ...                       ...                  ]
+                //               [in(i*st+knl-1, j*st), ..., in(i*st+knl-1, j*st+knl-1)]
+    
+                // set the first element as output
+                output[d][i*out_size+j] = input[d][i*_stride*in_size + j*_stride];
+                for (int k = 0; k < _kernel_size; ++k)
                 {
-                    // if next element in kernel is larger, change output to the larger element
-                    if (output[i*out_size+j] < input[(i*_stride+k)*in_size + j*_stride+m])
+                    for (int m = 0; m < _kernel_size; ++m)
                     {
-                        output[i*out_size+j] = input[(i*_stride+k)*in_size + j*_stride+m];
+                        // if next element in kernel is larger, change output to the larger element
+                        if (output[d][i*out_size+j] < input[d][(i*_stride+k)*in_size + j*_stride+m])
+                        {
+                            output[d][i*out_size+j] = input[d][(i*_stride+k)*in_size + j*_stride+m];
+                        }
                     }
                 }
+                // finish the calculation of out(d, i, j)
             }
-            // finish the calculation of out(i, j)
         }
     }
     return output;

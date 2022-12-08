@@ -1,7 +1,11 @@
 #ifndef BASIC_COMPNENTS
 #define BASIC_COMPNENTS
 #include <stddef.h>
-void print_matrix(float* mat, int row, int column);
+// print matrix according to its size
+void print_matrix(float* mat, int row, int column); 
+
+// calculate output image size of convolutional layer or maxpooling layer
+int output_size_cal(int in_size, int kernel_size, int stride, int padding=0); 
 
 class fully_connected
 {
@@ -26,7 +30,7 @@ public:
     max_pooling(); // default constructor
     max_pooling(int kernel_size, int stride);
     ~max_pooling();
-    float* forward(float* input, int in_size, float* output); //forward propagation
+    float** forward(float** input, int in_dim, int in_size, float** output); //forward propagation
 private:
     int _kernel_size;
     int _stride;
