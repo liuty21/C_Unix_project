@@ -18,7 +18,6 @@ from torch.autograd.variable import Variable
 
 # assume input size = 28*28
 class Model_Alexnet(nn.Module):
-    # Used for both eyes (with shared weights) and the face (with unqiue weights)
     def __init__(self):
         super(Model_Alexnet, self).__init__()
         self.features = nn.Sequential(
