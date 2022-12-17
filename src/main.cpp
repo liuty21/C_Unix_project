@@ -35,8 +35,10 @@ int main(int argc, char const *argv[])
         img_input[i] = img[i];
     }
 
-    AlexNet model;
-    char model_path[] = "../models/model_AlexNet";  // model file path
+    // AlexNet model;
+    // char model_path[] = "../models/model_AlexNet";  // model file path
+    ResNet model;
+    char model_path[] = "../models/model_ResNet";  // model file path
     model.set_weight(model_path);
     model.forward(&img_input, output, 28);
     // print_matrix(output, 1, 10);

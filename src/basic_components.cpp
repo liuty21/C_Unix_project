@@ -53,35 +53,35 @@ fully_connected::fully_connected(int in_dim, int out_dim)
     printf("fc(%d, %d) constructed\n", in_dim, out_dim);
 }
 
-// fully_connected::fully_connected(const fully_connected& fc)
-// {
-//     weight = (float*)malloc(sizeof(float) * fc._in_dim * fc._out_dim);
-//     if (weight == NULL)
-//     {
-//         printf("Malloc failed!\n");
-//         exit(1);
-//     }
-//     bias = (float*)malloc(sizeof(float) * fc._out_dim);
-//     if (bias == NULL)
-//     {
-//         printf("Malloc failed!\n");
-//         exit(1);
-//     }
-//     _in_dim = fc._in_dim;
-//     _out_dim = fc._out_dim;
-//     valid = fc.valid;
-//     if(valid)
-//     {
-//         for (int i = 0; i < _in_dim * _out_dim; ++i)
-//         {
-//             weight[i] = fc.weight[i]; //copy weight
-//         }
-//         for (int i = 0; i < _out_dim; ++i)
-//         {
-//             bias[i] = fc.bias[i]; //copy bias
-//         }
-//     }
-// }
+fully_connected::fully_connected(const fully_connected& fc)
+{
+    weight = (float*)malloc(sizeof(float) * fc._in_dim * fc._out_dim);
+    if (weight == NULL)
+    {
+        printf("Malloc failed!\n");
+        exit(1);
+    }
+    bias = (float*)malloc(sizeof(float) * fc._out_dim);
+    if (bias == NULL)
+    {
+        printf("Malloc failed!\n");
+        exit(1);
+    }
+    _in_dim = fc._in_dim;
+    _out_dim = fc._out_dim;
+    valid = fc.valid;
+    if(valid)
+    {
+        for (int i = 0; i < _in_dim * _out_dim; ++i)
+        {
+            weight[i] = fc.weight[i]; //copy weight
+        }
+        for (int i = 0; i < _out_dim; ++i)
+        {
+            bias[i] = fc.bias[i]; //copy bias
+        }
+    }
+}
 
 fully_connected::~fully_connected()
 {
@@ -250,52 +250,52 @@ _in_dim(in_dim),_out_dim(out_dim),_kernel_size(kernel_size), _stride(stride), _p
     printf("conv(%d, %d, %d) constructed\n", in_dim, out_dim, kernel_size);
 }
 
-// convolution::convolution(const convolution& conv) //NOTE: DO NOT copy default object!
-// {
-//     _in_dim = conv._in_dim;
-//     _out_dim = conv._out_dim;
-//     _kernel_size = conv._kernel_size;
-//     _stride = conv._stride;
-//     _padding = conv._padding;
-//     valid = conv.valid;
+convolution::convolution(const convolution& conv) //NOTE: DO NOT copy default object!
+{
+    _in_dim = conv._in_dim;
+    _out_dim = conv._out_dim;
+    _kernel_size = conv._kernel_size;
+    _stride = conv._stride;
+    _padding = conv._padding;
+    valid = conv.valid;
 
-//     weight = (float**)malloc(sizeof(float*)*_out_dim);
-//     if (weight == NULL)
-//     {
-//         printf("Malloc failed!\n");
-//         exit(1);
-//     }
+    weight = (float**)malloc(sizeof(float*)*_out_dim);
+    if (weight == NULL)
+    {
+        printf("Malloc failed!\n");
+        exit(1);
+    }
 
-//     for (int i = 0; i < _out_dim; ++i)
-//     {
-//         weight[i] = (float*)malloc(sizeof(float)*_kernel_size*_kernel_size*_in_dim);
-//         if (weight[i] == NULL)
-//         {
-//             printf("Malloc failed!\n");
-//             exit(1);
-//         }
-//     }
+    for (int i = 0; i < _out_dim; ++i)
+    {
+        weight[i] = (float*)malloc(sizeof(float)*_kernel_size*_kernel_size*_in_dim);
+        if (weight[i] == NULL)
+        {
+            printf("Malloc failed!\n");
+            exit(1);
+        }
+    }
 
-//     bias = (float*)malloc(sizeof(float)*_out_dim);
-//     if (bias == NULL)
-//     {
-//         printf("Malloc failed!\n");
-//         exit(1);
-//     }
+    bias = (float*)malloc(sizeof(float)*_out_dim);
+    if (bias == NULL)
+    {
+        printf("Malloc failed!\n");
+        exit(1);
+    }
 
-//     // if weight is valid, copy weight value
-//     if(valid)
-//     {
-//         for (int i = 0; i < _out_dim; ++i)
-//         {
-//             for (int j = 0; j < _kernel_size*_kernel_size*_in_dim; ++j)
-//             {
-//                 weight[i][j] = conv.weight[i][j];
-//             }
-//             bias[i] = conv.bias[i];
-//         }
-//     }
-// }
+    // if weight is valid, copy weight value
+    if(valid)
+    {
+        for (int i = 0; i < _out_dim; ++i)
+        {
+            for (int j = 0; j < _kernel_size*_kernel_size*_in_dim; ++j)
+            {
+                weight[i][j] = conv.weight[i][j];
+            }
+            bias[i] = conv.bias[i];
+        }
+    }
+}
 
 convolution::~convolution()
 {

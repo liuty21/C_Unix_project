@@ -12,7 +12,7 @@ class fully_connected
 public:
     fully_connected(); // default constructor
     fully_connected(int in_dim, int out_dim); // Constructor with dimension information
-    // fully_connected(const fully_connected& fc); //copy constructor
+    fully_connected(const fully_connected& fc); //copy constructor
     ~fully_connected(); // NOTE: remember to free memory
     int set_weight(float* weight_pretrained, float* bias_pretrained);
     float* forward(float* input, float* output); // forward propagation
@@ -46,7 +46,7 @@ class convolution
 public:
     convolution(); // default constructor
     convolution(int in_dim, int out_dim, int kernel_size, int stride, int padding=0);
-    // convolution(const convolution& conv); //copy constructor
+    convolution(const convolution& conv); //copy constructor
     ~convolution();
     int set_weight(float** weight_pretrained, float* bias_pretrained);
     float** forward(float** input, int in_size, float** output);
