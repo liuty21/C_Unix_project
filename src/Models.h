@@ -51,4 +51,21 @@ public:
     int _fc_size1, _fc_size2, _fc_size3;
 };
 
+// VGGNet-like Network for MNIST dataset
+class VGGNet
+{
+public:
+    VGGNet(int dim1=2, int dim2=4, int dim3=8, int fc_size1=72, int fc_size2=36, int fc_size3=10);
+    ~VGGNet();
+    int set_weight(char* model_path);
+    float* forward(float** input, float* output, int in_size=28);
+
+    convolution conv1, conv2, conv3; // convolutional layers
+    max_pooling pool;  // max-pooling layers share the same settings
+    fully_connected fc1, fc2; // fully-connected layers
+    
+    // assume input size of image = 1
+    int _dim1, _dim2, _dim3; // hidden layers' dimension
+    int _fc_size1, _fc_size2, _fc_size3;
+};
 #endif
