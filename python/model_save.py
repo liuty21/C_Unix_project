@@ -24,10 +24,15 @@ def print_model(state_dict):
 
 def main():
 	# model_path = './Model_Alexnet.pth'
-	model_path = './Model_resnet.pth'
+	# model_path = './Model_resnet.pth'
+	model_path = './Model_Vggnet.pth'
+
 	state_dict = torch.load(model_path)
-	write_txt(state_dict, "model_ResNet")
-	# print_model(state_dict)
+
+	# write_txt(state_dict, "model_AlexNet")
+	# write_txt(state_dict, "model_ResNet")
+	write_txt(state_dict, "model_VGGNet")
+	print_model(state_dict)
 
 if __name__ == '__main__':
 	main()

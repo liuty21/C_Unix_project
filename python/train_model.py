@@ -1,6 +1,7 @@
 from load_mnist import Dataload
 from model_AlexNet import Model_Alexnet
 from model_ResNet import ResNet
+from model_VGGNet import Vggnet
 import torch
 import torch.nn as nn
 import matplotlib
@@ -16,11 +17,18 @@ lr = 0.001
 epochs = 10
 show_results = False
 do_test = False
-
+model_flag = 2 # 0: Alexnet; 1:Resnet; 2:VggNet
 
 def main():
-    # model = Model_Alexnet()
-    model = ResNet()
+    if model_flag == 0:
+        model = Model_Alexnet()
+        model_path = './Model_Alexnet.pth'
+    if model_flag == 1:
+        model = ResNet()
+        model_path = './Model_resnet.pth'
+    if model_flag == 2:
+        model = Vggnet()
+        model_path = './Model_Vggnet.pth'
     model.cuda()
 
     data_train = Dataload(train_img_file, train_label_file)
@@ -37,7 +45,7 @@ def main():
                                 weight_decay=1e-4)
 
     if do_test:
-        state = torch.load('./Model_Alexnet.pth')
+        state = torch.load(model_path)
         model.load_state_dict(state)
         test(test_loader, model, show_results=show_results)
         return
@@ -46,8 +54,7 @@ def main():
         train(train_loader, model, criterion, optimizer, epoch)
         test(test_loader, model, show_results=show_results)
 
-    # torch.save(model.state_dict(), './Model_Alexnet.pth')
-    torch.save(model.state_dict(), './Model_resnet.pth')
+    torch.save(model.state_dict(), model_path)
 
     # for params in model.state_dict():
     #     print(params, model.state_dict()[params].size())
@@ -84,7 +91,7 @@ def test(test_loader, model, show_results=False):
     for i, (img, label) in enumerate(test_loader):
         img = img.cuda()
         label = label.cuda()
-        
+
         img = torch.autograd.Variable(img, requires_grad = False)
         label = torch.autograd.Variable(label, requires_grad = False)
 

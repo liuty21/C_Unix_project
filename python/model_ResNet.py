@@ -55,9 +55,9 @@ class ResNet(nn.Module):
         self.res2 = residual(4, 8, 2, 1) # 3*3*8
         
         self.fc = nn.Sequential(
-            nn.Linear(3*3*8, 18),
+            nn.Linear(3*3*8, 36),
             nn.ReLU(inplace=True),
-            nn.Linear(18, 10),
+            nn.Linear(36, 10),
             )
 
     def forward(self, x):
