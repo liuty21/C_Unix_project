@@ -14,18 +14,38 @@ void show_predict_result(unsigned char* img_in, int model_output, unsigned char 
     char title_name[] = "model output = 0 ( label = 0 )";
     title_name[15] = title_name[15]+model_output; // show model result in title
     title_name[27] = title_name[27]+label;  // show image label in title
+    printf("The number is %d\n", model_output);
     img1.display(title_name, false, 0, true);
 }
 
 int main(int argc, char const *argv[])
 {
-    // AlexNet model;
-    // char model_path[] = "../models/model_AlexNet";  // model file path
-    // ResNet model;
-    // char model_path[] = "../models/model_ResNet";  // model file path
-    VGGNet model;
-    char model_path[] = "../models/model_VGGNet";  // model file path
-    model.set_weight(model_path);
+    char* model_path;
+    AlexNet model_AlexNet;
+    ResNet model_ResNet;
+    VGGNet model_VGGNet;
+    switch(argv[1][0])
+    {
+        case '0':
+            model_path = "../models/model_AlexNet";  // model file path
+            model_AlexNet.set_weight(model_path);
+            printf("using AlexNet model...\n");
+            break;
+        case '1':
+            model_path = "../models/model_ResNet";  // model file path
+            model_ResNet.set_weight(model_path);
+            printf("using ResNet model...\n");
+            break;
+        case '2':
+            model_path = "../models/model_VGGNet";  // model file path
+            model_VGGNet.set_weight(model_path);
+            printf("using VGGNet model...\n");
+            break;
+        default:
+            printf("Error!\n");
+            return 1;
+    }
+    
 
     // open MNIST test dataset
     FILE* dataset = fopen("../MNIST/t10k-images.idx3-ubyte","rb");
@@ -58,8 +78,17 @@ int main(int argc, char const *argv[])
         }
 
         // get model predict result
-        model.forward(&img_input, output, 28);
-        // print_matrix(output, 1, 10);
+        switch(argv[1][0])
+        {
+            case '0':
+                model_AlexNet.forward(&img_input, output, 28);
+                break;
+            case '1':
+                model_ResNet.forward(&img_input, output, 28);
+                break;
+            case '2':
+                model_VGGNet.forward(&img_input, output, 28);
+        }
 
         float output_max = -10000; 
         for (int i = 0; i < 10; ++i) // find argmax(output)

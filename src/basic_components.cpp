@@ -50,7 +50,7 @@ fully_connected::fully_connected(int in_dim, int out_dim)
     _out_dim = out_dim;
     valid = false;
 
-    printf("fc(%d, %d) constructed\n", in_dim, out_dim);
+    // printf("fc(%d, %d) constructed\n", in_dim, out_dim);
 }
 
 fully_connected::fully_connected(const fully_connected& fc)
@@ -247,7 +247,7 @@ _in_dim(in_dim),_out_dim(out_dim),_kernel_size(kernel_size), _stride(stride), _p
         exit(1);
     }
 
-    printf("conv(%d, %d, %d) constructed\n", in_dim, out_dim, kernel_size);
+    // printf("conv(%d, %d, %d) constructed\n", in_dim, out_dim, kernel_size);
 }
 
 convolution::convolution(const convolution& conv) //NOTE: DO NOT copy default object!

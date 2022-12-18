@@ -17,7 +17,7 @@ conv3(dim2, dim3, kernel_size3, stride3, padding3),
 pool1(2,2), pool2(2,2), 
 fc1(fc_size1, fc_size2), fc2(fc_size2, fc_size3)
 {
-    printf("Model AlexNet constructed\n");
+    // printf("Model AlexNet constructed\n");
 }
 
 AlexNet::~AlexNet(){}
@@ -485,7 +485,7 @@ conv(1, dim1, kernel_size1, stride1, padding1), pool(2,2),
 res1(dim1, dim2, stride2), res2(dim2, dim3, stride3),
 fc1(fc_size1, fc_size2), fc2(fc_size2, fc_size3)
 {
-    printf("Model ResNet constructed\n");
+    // printf("Model ResNet constructed\n");
 }
 
 ResNet::~ResNet(){}
@@ -1025,7 +1025,7 @@ conv3(dim2, dim3, 3, 1, 1),
 pool(2,2),
 fc1(fc_size1, fc_size2), fc2(fc_size2, fc_size3)
 {
-    printf("Model VGGNet constructed\n");
+    // printf("Model VGGNet constructed\n");
 }
 
 VGGNet::~VGGNet(){}

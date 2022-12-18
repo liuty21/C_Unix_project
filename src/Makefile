@@ -28,8 +28,14 @@ do_test_blas: test_blas
 main: $(OBJS_MAIN)
 	$(BSUB) $(CC) $(CFLAGS) -o $@ $^ $(BLASLIB)
 
-do_main: main
-	$(BSUB) ./$^
+do_Alexnet: main
+	$(BSUB) ./$^ 0
+
+do_Resnet: main
+	$(BSUB) ./$^ 1
+
+do_VGGnet: main
+	$(BSUB) ./$^ 2
 
 clean_test: $(OBJS_TEST) test
 	rm $^
